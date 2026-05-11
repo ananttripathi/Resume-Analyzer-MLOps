@@ -304,20 +304,25 @@ def analyze_resume(
   </div>
 </div>
 """
+            tips = [
+                "Add a job description above for personalized recommendations",
+                "Ensure your resume has clear sections: Experience, Education, Skills",
+                "Use action verbs and quantifiable achievements",
+                "Keep formatting simple and ATS-friendly — avoid tables and graphics",
+            ]
+            tips_html = "".join(
+                '<div style="padding:12px 0;border-bottom:1px solid ' + C_BORDER + ';display:flex;gap:12px;align-items:flex-start;">'
+                '<span style="background:' + C_ACCENT + ';color:white;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;">' + str(i) + '</span>'
+                '<p style="margin:0;font-size:13px;color:' + C_TEXT + ';line-height:1.5;">' + tip + '</p></div>'
+                for i, tip in enumerate(tips, 1)
+            )
             recommendations_display = f"""
 <div style="font-family:'Inter',sans-serif;padding:4px;">
   <div style="{CARD_STYLE}{SHADOW}border-left:4px solid {C_ACCENT};">
     <p style="margin:0;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:{C_MUTED};">General tips</p>
     <h2 style="margin:4px 0 0 0;font-size:20px;font-weight:700;color:{C_TEXT};">Best Practices</h2>
   </div>
-  <div style="{CARD_STYLE}{SHADOW}">
-    {''.join(f"""<div style="padding:12px 0;border-bottom:1px solid {C_BORDER};display:flex;gap:12px;align-items:flex-start;"><span style="background:{C_ACCENT};color:white;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;">{i}</span><p style="margin:0;font-size:13px;color:{C_TEXT};line-height:1.5;">{tip}</p></div>""" for i, tip in enumerate([
-        "Add a job description above for personalized recommendations",
-        "Ensure your resume has clear sections: Experience, Education, Skills",
-        "Use action verbs and quantifiable achievements",
-        "Keep formatting simple and ATS-friendly — avoid tables and graphics",
-    ], 1))}
-  </div>
+  <div style="{CARD_STYLE}{SHADOW}">{tips_html}</div>
 </div>
 """
         return (
