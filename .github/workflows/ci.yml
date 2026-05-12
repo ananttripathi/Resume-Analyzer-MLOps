@@ -68,6 +68,6 @@ jobs:
       env:
         HF_TOKEN: ${{ secrets.HF_TOKEN }}
       run: |
-        echo "Deployment to HuggingFace Spaces happens automatically via git sync"
-        echo "Make sure your HF Space is connected to this repository"
+        git remote add hf https://ananttripathiak:$HF_TOKEN@huggingface.co/spaces/ananttripathiak/resume-analyzer
+        git push hf main --force
 
