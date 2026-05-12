@@ -181,16 +181,28 @@ class NLPProcessor:
     
     def calculate_experience_years(self, text: str) -> float:
         """Estimate total years of experience from text."""
-        years = re.findall(r'\b(19|20)\d{2}\b', text)
-        years = [int(y) for y in years]
-        
+        from datetime import datetime
+        current_year = datetime.now().year
+
+        # Substitute "present / current / now / till date" with the current year
+        # so ongoing roles are counted correctly
+        text_normalized = re.sub(
+            r'\b(present|current|currently|now|till\s+date|to\s+date|ongoing)\b',
+            str(current_year),
+            text,
+            flags=re.IGNORECASE
+        )
+
+        # Non-capturing group — re.findall returns full year strings, not just the prefix
+        years = [int(y) for y in re.findall(r'\b(?:19|20)\d{2}\b', text_normalized)]
+
+        # Keep only plausible work years
+        years = [y for y in years if 1970 <= y <= current_year]
+
         if len(years) < 2:
             return 0.0
-        
-        min_year = min(years)
-        max_year = max(years)
-        experience_years = max_year - min_year
-        
+
+        experience_years = max(years) - min(years)
         return min(experience_years, 50)
     
     def extract_keywords(self, text: str, top_n: int = 20) -> List[tuple]:
