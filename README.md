@@ -1,3 +1,15 @@
+---
+title: Resume Analyzer
+emoji: 📄
+colorFrom: indigo
+colorTo: purple
+sdk: gradio
+sdk_version: "4.8.0"
+python_version: "3.9"
+app_file: app.py
+pinned: false
+---
+
 # 🚀 Intelligent Resume Analyzer + Job Match Recommendation System
 
 [![HuggingFace Spaces](https://img.shields.io/badge/🤗-HuggingFace%20Space-blue)](https://huggingface.co/spaces/)
