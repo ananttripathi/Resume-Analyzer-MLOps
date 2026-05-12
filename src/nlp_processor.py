@@ -184,8 +184,6 @@ class NLPProcessor:
         from datetime import datetime
         current_year = datetime.now().year
 
-        # Substitute "present / current / now / till date" with the current year
-        # so ongoing roles are counted correctly
         text_normalized = re.sub(
             r'\b(present|current|currently|now|till\s+date|to\s+date|ongoing)\b',
             str(current_year),
@@ -193,17 +191,36 @@ class NLPProcessor:
             flags=re.IGNORECASE
         )
 
-        # Non-capturing group — re.findall returns full year strings, not just the prefix
-        years = [int(y) for y in re.findall(r'\b(?:19|20)\d{2}\b', text_normalized)]
+        def _span(source: str) -> float:
+            yrs = [int(y) for y in re.findall(r'\b(?:19|20)\d{2}\b', source)]
+            yrs = [y for y in yrs if 1970 <= y <= current_year]
+            if len(yrs) < 2:
+                return 0.0
+            return min(float(max(yrs) - min(yrs)), 50.0)
 
-        # Keep only plausible work years
-        years = [y for y in years if 1970 <= y <= current_year]
+        # Restrict to the experience section to avoid education years inflating the span
+        exp_section = self._find_section(
+            text_normalized, ['experience', 'employment', 'work history']
+        )
+        if exp_section:
+            result = _span(exp_section)
+            if result > 0:
+                return result
 
-        if len(years) < 2:
-            return 0.0
+        # Fallback: use only years that appear inside explicit date ranges (YYYY - YYYY),
+        # which are far less likely to be standalone graduation years
+        range_years: list[int] = []
+        for s, e in re.findall(
+            r'\b((?:19|20)\d{2})\s*[-–—]+\s*((?:19|20)\d{2})\b',
+            text_normalized
+        ):
+            range_years.extend([int(s), int(e)])
+        range_years = [y for y in range_years if 1970 <= y <= current_year]
+        if len(range_years) >= 2:
+            return min(float(max(range_years) - min(range_years)), 50.0)
 
-        experience_years = max(years) - min(years)
-        return min(experience_years, 50)
+        # Last resort: full document span
+        return _span(text_normalized)
     
     def extract_keywords(self, text: str, top_n: int = 20) -> List[tuple]:
         """Extract top keywords from text."""
