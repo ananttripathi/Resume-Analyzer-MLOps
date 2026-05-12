@@ -345,8 +345,7 @@ def analyze_resume(
         return error_msg, "", "", "", ""
 
 
-def create_interface():
-    custom_css = """
+_APP_CSS = """
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
     * { font-family: 'Inter', sans-serif !important; box-sizing: border-box; }
@@ -402,18 +401,50 @@ def create_interface():
     }
     .gr-file:hover { border-color: #6366f1 !important; }
 
-    /* Tabs */
-    .tabs { border-radius: 12px !important; overflow: hidden !important; background: white !important; border: 1px solid #f3f4f6 !important; box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important; }
-    .tab-nav { background: #fafafa !important; padding: 6px !important; border-bottom: 1px solid #f3f4f6 !important; }
-    .tab-nav button { font-size: 13px !important; font-weight: 500 !important; padding: 8px 16px !important; border-radius: 6px !important; color: #737373 !important; transition: all 0.2s !important; }
-    .tab-nav button:hover { background: #f3f4f6 !important; color: #171717 !important; }
-    .tab-nav button[aria-selected="true"] { background: white !important; color: #6366f1 !important; font-weight: 600 !important; box-shadow: 0 1px 3px rgba(0,0,0,0.08) !important; }
+    /* Tabs — use ARIA role selectors so they work across Gradio 5 and 6 */
+    div[role="tablist"] {
+        background: #f3f4f6 !important;
+        padding: 4px !important;
+        border-bottom: 1px solid #e5e7eb !important;
+        border-radius: 10px 10px 0 0 !important;
+    }
+    div[role="tablist"] button,
+    button[role="tab"] {
+        font-size: 13px !important;
+        font-weight: 500 !important;
+        padding: 7px 16px !important;
+        border-radius: 6px !important;
+        color: #374151 !important;
+        background: transparent !important;
+        border: none !important;
+        transition: all 0.15s !important;
+    }
+    div[role="tablist"] button:hover,
+    button[role="tab"]:hover {
+        background: #e5e7eb !important;
+        color: #111827 !important;
+    }
+    div[role="tablist"] button[aria-selected="true"],
+    button[role="tab"][aria-selected="true"] {
+        background: white !important;
+        color: #6366f1 !important;
+        font-weight: 600 !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.10) !important;
+    }
 
     label { font-weight: 500 !important; color: #374151 !important; font-size: 13px !important; }
     h1, h2, h3 { font-weight: 700 !important; color: #171717 !important; }
     """
 
-    with gr.Blocks(css=custom_css, title="Resume Analyzer — ML Career Hub", theme=gr.themes.Base()) as demo:
+
+def create_interface():
+    _gr_ver = tuple(int(x) for x in gr.__version__.split(".")[:2])
+    _blocks_kw: dict = {"title": "Resume Analyzer — ML Career Hub"}
+    if _gr_ver < (6, 0):
+        _blocks_kw["css"] = _APP_CSS
+        _blocks_kw["theme"] = gr.themes.Base()
+
+    with gr.Blocks(**_blocks_kw) as demo:
 
         # Header
         gr.HTML("""
@@ -488,8 +519,9 @@ def create_interface():
 if __name__ == "__main__":
     logger.info("Starting Gradio application...")
     demo = create_interface()
-    demo.launch(
-        server_name="0.0.0.0",
-        server_port=7860,
-        share=False
-    )
+    _launch_kw: dict = {"server_name": "0.0.0.0", "server_port": 7860, "share": False}
+    _gr_ver = tuple(int(x) for x in gr.__version__.split(".")[:2])
+    if _gr_ver >= (6, 0):
+        _launch_kw["css"] = _APP_CSS
+        _launch_kw["theme"] = gr.themes.Base()
+    demo.launch(**_launch_kw)
