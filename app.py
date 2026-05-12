@@ -47,8 +47,8 @@ def analyze_resume(
             return "⚠️ Please upload a resume file", "", "", "", ""
 
         # Parse resume
-        logger.info(f"Processing: {resume_file.name}")
-        parsed_data = resume_parser.parse_file(resume_file.name)
+        logger.info(f"Processing: {resume_file}")
+        parsed_data = resume_parser.parse_file(resume_file)
         resume_text = parsed_data['cleaned_text']
 
         # Extract information
@@ -85,7 +85,7 @@ def analyze_resume(
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:16px 0;">
     <div style="{CARD_STYLE}{SHADOW}">
       <p style="margin:0 0 4px 0;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:{C_MUTED};">File</p>
-      <p style="margin:0;font-size:14px;font-weight:600;color:{C_TEXT};">{os.path.basename(resume_file.name)}</p>
+      <p style="margin:0;font-size:14px;font-weight:600;color:{C_TEXT};">{os.path.basename(resume_file)}</p>
       <p style="margin:4px 0 0 0;font-size:13px;color:{C_MUTED};">{parsed_data['word_count']} words</p>
     </div>
     <div style="{CARD_STYLE}{SHADOW}">
@@ -290,7 +290,7 @@ def analyze_resume(
             recommendations_display += "</div></div>"
 
             log_analysis(
-                os.path.basename(resume_file.name),
+                os.path.basename(resume_file),
                 ats_results['overall_score'],
                 similarity
             )
