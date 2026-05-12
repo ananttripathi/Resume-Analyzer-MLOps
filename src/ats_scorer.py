@@ -120,37 +120,58 @@ class ATSScorer:
             'issues': issues
         }
     
+    # Common variants for each essential section
+    SECTION_VARIANTS = {
+        'experience': [
+            'experience', 'work experience', 'professional experience',
+            'employment', 'employment history', 'work history', 'career history',
+            'positions held',
+        ],
+        'education': [
+            'education', 'academic background', 'academic qualifications',
+            'qualifications', 'schooling', 'degrees', 'university', 'college',
+        ],
+        'skills': [
+            'skills', 'technical skills', 'core competencies', 'competencies',
+            'expertise', 'technologies', 'tools', 'proficiencies',
+        ],
+        'summary': [
+            'summary', 'professional summary', 'profile', 'about me',
+            'objective', 'career objective', 'overview', 'introduction',
+        ],
+        'contact': [
+            'contact', 'contact information', 'contact details', 'email',
+            'phone', 'mobile', 'linkedin', 'address',
+        ],
+    }
+
     def _calculate_section_score(self, text: str) -> Dict:
         """Calculate section completeness score."""
         found_sections = []
         missing_sections = []
-        
+
         text_lower = text.lower()
-        
+
         for section in self.ESSENTIAL_SECTIONS:
-            # Look for section headers
-            patterns = [
-                f'\n{section}',
-                f'\n{section.upper()}',
-                f'{section}:',
-                f'{section.upper()}:'
-            ]
-            
-            found = any(pattern in text_lower for pattern in patterns)
-            
+            variants = self.SECTION_VARIANTS.get(section, [section])
+            found = any(
+                re.search(r'\b' + re.escape(v) + r'\b', text_lower)
+                for v in variants
+            )
+
             if found:
                 found_sections.append(section)
             else:
                 missing_sections.append(section)
-        
+
         score = (len(found_sections) / len(self.ESSENTIAL_SECTIONS)) * 100
-        
+
         issues = []
         if missing_sections:
             issues.append(f"Missing sections: {', '.join(missing_sections)}")
         if len(found_sections) == len(self.ESSENTIAL_SECTIONS):
             issues.append("All essential sections present")
-        
+
         return {
             'score': score,
             'found_sections': found_sections,
@@ -255,8 +276,8 @@ class ATSScorer:
         else:
             missing_contact.append('email')
         
-        # Phone
-        if re.search(r'(\+\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}', text):
+        # Phone — handles +91 9876543210, (555) 123-4567, 9876543210, +1-800-555-0199
+        if re.search(r'(?:\+\d{1,3}[\s.\-]?)?(?:\(?\d{3,5}\)?[\s.\-]?){1,2}\d{3,5}[\s.\-]?\d{3,5}', text):
             score += 30
             found_contact.append('phone')
         else:

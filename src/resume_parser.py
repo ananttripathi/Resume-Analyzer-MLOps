@@ -149,22 +149,25 @@ class ResumeParser:
     def clean_text(self, text: str) -> str:
         """
         Clean and normalize extracted text.
-        
+
         Args:
             text: Raw extracted text
-            
+
         Returns:
             Cleaned text
         """
-        # Remove excessive whitespace
-        text = re.sub(r'\s+', ' ', text)
-        
-        # Remove special characters but keep important punctuation
-        text = re.sub(r'[^\w\s\.,;:\-\(\)@/]', '', text)
-        
-        # Normalize line breaks
+        # Normalize line endings first so newlines are preserved
         text = text.replace('\r\n', '\n').replace('\r', '\n')
-        
+
+        # Remove special characters but keep punctuation, +, and newlines
+        text = re.sub(r'[^\w\s\.,;:\-\(\)\+@/]', '', text)
+
+        # Collapse multiple spaces/tabs on the same line (preserve newlines)
+        text = re.sub(r'[^\S\n]+', ' ', text)
+
+        # Collapse more than two consecutive blank lines
+        text = re.sub(r'\n{3,}', '\n\n', text)
+
         return text.strip()
     
     def extract_metadata(self, text: str) -> Dict[str, any]:
@@ -184,10 +187,10 @@ class ResumeParser:
         emails = re.findall(email_pattern, text)
         metadata['emails'] = emails[:1] if emails else []
         
-        # Extract phone numbers
-        phone_pattern = r'(\+\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}'
+        # Extract phone numbers — non-capturing groups so findall returns full matches
+        phone_pattern = r'(?:\+\d{1,3}[\s.\-]?)?(?:\(?\d{3,5}\)?[\s.\-]?){1,2}\d{3,5}[\s.\-]?\d{3,5}'
         phones = re.findall(phone_pattern, text)
-        metadata['phones'] = [p[0] + p[1] if isinstance(p, tuple) else p for p in phones[:2]]
+        metadata['phones'] = [p.strip() for p in phones[:2] if len(re.sub(r'\D', '', p)) >= 7]
         
         # Extract LinkedIn
         linkedin_pattern = r'linkedin\.com/in/[\w-]+'
